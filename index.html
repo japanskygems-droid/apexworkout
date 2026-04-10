@@ -100,6 +100,7 @@
     display: flex; gap: 2px; padding: 16px 24px;
     border-bottom: 1px solid var(--border);
     overflow-x: auto; scrollbar-width: none;
+    justify-content: center;
   }
   .nav-tabs::-webkit-scrollbar { display: none; }
   .nav-tab {
@@ -580,7 +581,6 @@
     <button class="nav-tab" onclick="switchPage('tracker')" data-page="tracker">📈 Progress</button>
     <button class="nav-tab" onclick="switchPage('prehab')" data-page="prehab">🔧 Pre-hab</button>
     <button class="nav-tab" onclick="switchPage('cali')" data-page="cali">🏋 Calisthenics</button>
-    <button class="nav-tab" onclick="switchPage('scan')" data-page="scan">📸 Body Scan</button>
   </nav>
 
   <!-- ══════════════════════════════════════
@@ -649,16 +649,6 @@
           <div class="chip" data-val="novice" onclick="selectChip(this,'chips-exp')">🔹 Novice (1–2 yrs)</div>
           <div class="chip" data-val="intermediate" onclick="selectChip(this,'chips-exp')">🔶 Intermediate (2–4 yrs)</div>
           <div class="chip" data-val="advanced" onclick="selectChip(this,'chips-exp')">🔥 Advanced (4+ yrs)</div>
-        </div>
-      </div>
-      <hr class="divider">
-      <div class="form-group">
-        <label class="form-label">Consistency History</label>
-        <div class="chips" id="chips-consistency">
-          <div class="chip" data-val="inconsistent" onclick="selectChip(this,'chips-consistency')">😅 Very inconsistent</div>
-          <div class="chip" data-val="occasional" onclick="selectChip(this,'chips-consistency')">📅 Occasional (1–2×/wk)</div>
-          <div class="chip" data-val="moderate" onclick="selectChip(this,'chips-consistency')">✅ Moderate (3×/wk)</div>
-          <div class="chip" data-val="consistent" onclick="selectChip(this,'chips-consistency')">🏆 Consistent (4–5×/wk)</div>
         </div>
       </div>
     </div>
@@ -838,16 +828,6 @@
         <label class="form-label">Dietary Restrictions or Allergies</label>
         <input type="text" class="form-input" id="f-allergies" placeholder="e.g. lactose intolerant, nut allergy, no pork...">
       </div>
-      <div class="form-group" style="margin-top:12px">
-        <label class="form-label">Where do you eat most meals?</label>
-        <div class="chips" id="chips-eating">
-          <div class="chip" data-val="home" onclick="toggleChip(this)">🏠 Mostly home-cooked</div>
-          <div class="chip" data-val="work" onclick="toggleChip(this)">💼 Work canteen / cafeteria</div>
-          <div class="chip" data-val="restaurant" onclick="toggleChip(this)">🍜 Restaurants / outside</div>
-          <div class="chip" data-val="convenience" onclick="toggleChip(this)">🏪 Convenience store</div>
-          <div class="chip" data-val="meal_prep" onclick="toggleChip(this)">📦 Meal prep</div>
-        </div>
-      </div>
     </div>
 
     <!-- LIFESTYLE -->
@@ -885,16 +865,6 @@
             <option value="very_high">🤯 Very High</option>
           </select>
         </div>
-        <div class="form-group">
-          <label class="form-label">Preferred Training Time</label>
-          <select class="form-select" id="f-time">
-            <option value="">No preference</option>
-            <option value="morning">☀️ Morning (6–10am)</option>
-            <option value="midday">🌞 Midday (10am–2pm)</option>
-            <option value="afternoon">🌤 Afternoon (2–6pm)</option>
-            <option value="evening">🌙 Evening (6–10pm)</option>
-          </select>
-        </div>
       </div>
       <div class="form-group" style="margin-top:12px">
         <label class="form-label">Injuries / Limitations (optional)</label>
@@ -903,6 +873,27 @@
       <div class="form-group" style="margin-top:12px">
         <label class="form-label">Anything else we should know?</label>
         <textarea class="form-textarea" id="f-extra" placeholder="e.g. I study in bed which causes poor posture, I live in Japan and eat at konbini often, I have a trap asymmetry..."></textarea>
+      </div>
+    </div>
+
+    <!-- OPTIONAL BODY SCAN -->
+    <div class="card">
+      <div style="display:flex;align-items:center;justify-content:space-between">
+        <div>
+          <div class="card-title" style="margin-bottom:4px">📸 Body Scan <span style="font-size:11px;color:var(--text-dim);font-family:'JetBrains Mono',monospace;letter-spacing:1px;font-weight:400;text-transform:uppercase">Optional</span></div>
+          <div style="font-size:13px;color:var(--text-dim)">Upload front, side & back photos. APEX cross-references your physique to fine-tune the program.</div>
+        </div>
+        <button class="btn btn-secondary btn-sm" onclick="toggleBuildScan()" id="build-scan-toggle-btn" style="flex-shrink:0;margin-left:16px">Add Photos</button>
+      </div>
+      <div id="build-scan-body" style="display:none;margin-top:16px">
+        <div class="scan-zone" ondragover="event.preventDefault()" ondrop="buildScanDrop(event)" style="padding:24px">
+          <input type="file" id="build-scan-input" accept="image/*" multiple onchange="handleBuildScanUpload(event)" style="position:absolute;inset:0;opacity:0;cursor:pointer">
+          <div class="scan-icon" style="font-size:32px;margin-bottom:8px">📷</div>
+          <div class="scan-title" style="font-size:15px">Drop photos or click to upload</div>
+          <div class="scan-sub">Front · Side · Back — JPG, PNG</div>
+        </div>
+        <div id="build-scan-previews" style="display:flex;gap:8px;flex-wrap:wrap;margin-top:12px"></div>
+        <div id="build-scan-status" style="display:none;margin-top:12px"></div>
       </div>
     </div>
 
@@ -928,11 +919,25 @@
       <button class="btn btn-primary" onclick="switchPage('build')">Build My Plan</button>
     </div>
     <div id="plan-content" style="display:none">
-      <div class="section-label">Your Custom Program</div>
-      <div class="section-title" id="plan-title">5-Day Hypertrophy Split</div>
+      <div style="display:flex;align-items:center;gap:16px;margin-bottom:4px">
+        <div style="font-family:'Bebas Neue',sans-serif;font-size:52px;color:var(--accent);letter-spacing:6px;line-height:1;text-shadow:0 0 40px rgba(232,255,71,0.3)">APEX</div>
+        <div>
+          <div class="section-label" style="margin-bottom:2px">Your Custom Program</div>
+          <div class="section-title" id="plan-title" style="margin-bottom:0">5-Day Hypertrophy Split</div>
+        </div>
+      </div>
+      <div id="plan-profile-tag" style="font-size:12px;color:var(--text-dim);font-family:'JetBrains Mono',monospace;letter-spacing:1px;margin-bottom:20px"></div>
 
       <!-- week stats -->
-      <div class="stats-row" id="plan-stats" style="margin-bottom:20px"></div>
+      <div class="stats-row" id="plan-stats" style="margin-bottom:16px"></div>
+
+      <!-- progression rules -->
+      <div class="card" style="margin-bottom:16px;background:rgba(232,255,71,0.04);border-color:rgba(232,255,71,0.15)">
+        <div style="display:flex;align-items:center;gap:12px;flex-wrap:wrap">
+          <div style="font-family:'JetBrains Mono',monospace;font-size:10px;letter-spacing:2px;text-transform:uppercase;color:var(--accent)">PROGRESSION</div>
+          <div style="flex:1;font-size:13px;color:var(--text-mid)"><strong style="color:var(--text)">Double Progression</strong> — Hit the top of your rep range for ALL sets at a given weight → add 2.5kg next session. Compounds: 1–2 RIR. Isolations: 0–1 RIR.</div>
+        </div>
+      </div>
 
       <!-- deload banner (shown week 5+) -->
       <div class="deload-banner" id="deload-banner" style="display:none">
@@ -1080,40 +1085,6 @@
     <div id="cali-content" style="display:none"></div>
   </div>
 
-  <!-- ══════════════════════════════════════
-       PAGE: SCAN
-  ══════════════════════════════════════ -->
-  <div id="page-scan" class="page">
-    <div class="section-label">AI Body Analysis</div>
-    <div class="section-title">BODY SCAN</div>
-
-    <div class="card">
-      <div class="card-title">📸 Upload Your Photos</div>
-      <p style="font-size:13px;color:var(--text-mid);margin-bottom:16px">
-        Upload front, side, and back photos for a posture and physique analysis. Photos are analyzed locally — nothing is uploaded to any server.
-      </p>
-      <div class="scan-zone" id="scan-zone" ondragover="scanDragOver(event)" ondrop="scanDrop(event)">
-        <input type="file" id="body-scan-input" accept="image/*" multiple onchange="handleScanUpload(event)">
-        <div class="scan-icon">📷</div>
-        <div class="scan-title">Drop photos here or click to upload</div>
-        <div class="scan-sub">Front · Side · Back — JPG, PNG accepted</div>
-      </div>
-      <div id="scan-previews" style="display:flex;gap:10px;flex-wrap:wrap;margin-top:12px"></div>
-      <div style="margin-top:16px;display:flex;gap:10px">
-        <select class="form-select" id="scan-analysis-type" style="max-width:240px">
-          <option value="posture">Posture Assessment</option>
-          <option value="physique">Physique Analysis</option>
-          <option value="full">Full Assessment</option>
-        </select>
-        <button class="btn btn-primary" onclick="runScanAnalysis()" id="scan-btn" disabled>Analyze</button>
-      </div>
-    </div>
-
-    <div class="card" id="scan-result-card" style="display:none">
-      <div class="card-title">📊 Analysis Results</div>
-      <div id="scan-results"></div>
-    </div>
-  </div>
 
 </div><!-- end #app -->
 
@@ -1244,7 +1215,7 @@ function collectForm() {
     bf: parseFloat(document.getElementById('f-bf').value) || null,
     region: document.getElementById('f-region').value || '',
     experience: getChipValue('chips-exp') || 'beginner',
-    consistency: getChipValue('chips-consistency') || 'inconsistent',
+
     goals: getChipValues('chips-goals'),
     muscles: getChipValues('chips-muscles'),
     avoidMuscles: getChipValues('chips-avoid'),
@@ -1259,11 +1230,9 @@ function collectForm() {
     equipmentDetail: document.getElementById('f-equipment').value,
     diet: getChipValue('chips-diet') || 'omnivore',
     allergies: document.getElementById('f-allergies').value,
-    eating: getChipValues('chips-eating'),
     activity: document.getElementById('f-activity').value || 'sedentary',
     sleep: parseInt(document.getElementById('f-sleep').value) || 7,
     stress: document.getElementById('f-stress').value || 'moderate',
-    trainTime: document.getElementById('f-time').value || '',
     injuries: document.getElementById('f-injuries').value,
     extra: document.getElementById('f-extra').value,
   };
@@ -1919,9 +1888,13 @@ function renderPlan() {
   document.getElementById('plan-empty').style.display = 'none';
   document.getElementById('plan-content').style.display = 'block';
 
-  // Title
-  const daysMap = { 3: 'Full Body 3-Day', 4: '4-Day Upper/Lower', 5: '5-Day Split', 6: '6-Day PPL' };
+  // Title + profile tag
+  const daysMap = { 3: 'Full Body 3-Day', 4: '4-Day Upper/Lower', 5: '5-Day PPL-Style', 6: '6-Day PPL' };
   document.getElementById('plan-title').textContent = daysMap[plan.days] || `${plan.days}-Day Split`;
+  const f = state.form;
+  const goalLabel = (f.goals||[]).map(g => g.replace(/_/g,' ')).join(' · ').toUpperCase();
+  const profileTag = document.getElementById('plan-profile-tag');
+  if (profileTag) profileTag.textContent = `${f.experience||'INTERMEDIATE'} · ${goalLabel} · ${f.equipment||'FULL GYM'} · GENERATED ${new Date().toLocaleDateString('en-US',{month:'short',day:'numeric',year:'numeric'}).toUpperCase()}`;
 
   // Stats
   document.getElementById('plan-stats').innerHTML = `
@@ -2287,7 +2260,7 @@ function renderLiftTrackers() {
         <button class="btn btn-primary btn-sm" onclick="logLift(${ti})">Log</button>
         <button class="btn btn-sm" style="background:transparent;border:1px solid var(--border);color:var(--text-dim)" onclick="removeLift(${ti})">✕</button>
       </div>
-      ${t.entries.length >= 2 ? `<div class="cali-milestone" style="margin-top:6px">Last: ${t.entries[0].weight}kg × ${t.entries[0].reps} · PR: ${Math.max(...t.entries.map(e=>e.weight))}kg</div>` : ''}
+      ${t.entries.length >= 2 ? `<div style="margin-top:8px;display:flex;align-items:center;gap:8px;font-size:12px;color:var(--text-dim)">Last: <strong style="color:var(--text)">${t.entries[0].weight}kg × ${t.entries[0].reps}</strong> <span style="margin-left:auto;background:rgba(232,255,71,0.15);color:var(--accent);font-family:'JetBrains Mono',monospace;font-size:10px;padding:2px 8px;border-radius:100px;letter-spacing:1px">PR ${Math.max(...t.entries.map(e=>e.weight))}kg</span></div>` : ''}
     </div>
   `).join('');
 }
@@ -2558,9 +2531,86 @@ window.generatePlan = async function() {
   renderPlan();
   renderNutrition();
   renderPrehab();
+  autoPopulateLiftTrackers();
   savePlan();
-  notif('✅ Your perfect program is ready!', 'success');
+  notif('✅ Your APEX program is ready!', 'success');
   switchPage('plan');
+};
+
+// ─── AUTO-POPULATE LIFT TRACKERS FROM PLAN ───
+function autoPopulateLiftTrackers() {
+  if (!state.plan || state.liftTrackers.length > 0) return;
+  const seen = new Set();
+  const compounds = [];
+  state.plan.split.forEach(day => {
+    if (!day.isRest && day.exercises) {
+      day.exercises.forEach(ex => {
+        if ((ex.type === 'compound' || ex.type === 'compound_skill') && !seen.has(ex.name)) {
+          seen.add(ex.name);
+          compounds.push(ex.name);
+        }
+      });
+    }
+  });
+  state.liftTrackers = compounds.slice(0, 6).map(name => ({ name, entries: [] }));
+  localStorage.setItem('apex_liftTrackers', JSON.stringify(state.liftTrackers));
+}
+
+// ─── BUILD PAGE BODY SCAN ───
+let buildScanFiles = [];
+function toggleBuildScan() {
+  const body = document.getElementById('build-scan-body');
+  const btn = document.getElementById('build-scan-toggle-btn');
+  const isOpen = body.style.display !== 'none';
+  body.style.display = isOpen ? 'none' : 'block';
+  btn.textContent = isOpen ? 'Add Photos' : 'Collapse';
+}
+function handleBuildScanUpload(e) {
+  buildScanFiles = [...e.target.files];
+  renderBuildScanPreviews();
+  analyzeBuildScan();
+}
+function buildScanDrop(e) {
+  e.preventDefault();
+  buildScanFiles = [...e.dataTransfer.files].filter(f => f.type.startsWith('image/'));
+  renderBuildScanPreviews();
+  if (buildScanFiles.length) analyzeBuildScan();
+}
+function renderBuildScanPreviews() {
+  document.getElementById('build-scan-previews').innerHTML = buildScanFiles.map(f => {
+    const url = URL.createObjectURL(f);
+    return `<img src="${url}" style="width:72px;height:72px;object-fit:cover;border-radius:8px;border:2px solid var(--accent)">`;
+  }).join('');
+}
+function analyzeBuildScan() {
+  const el = document.getElementById('build-scan-status');
+  el.style.display = 'block';
+  el.innerHTML = `<div class="info-box" style="color:var(--text-dim)">Analyzing photos<span id="scan-dots">...</span></div>`;
+  let dots = 0;
+  const interval = setInterval(() => { dots = (dots+1)%4; const d = document.getElementById('scan-dots'); if(d) d.textContent = '.'.repeat(dots+1); }, 400);
+  setTimeout(() => {
+    clearInterval(interval);
+    el.innerHTML = `<div class="info-box"><strong style="color:var(--accent)">✅ ${buildScanFiles.length} photo${buildScanFiles.length>1?'s':''} received.</strong> APEX will incorporate your physique into program design. Confirm your postural issues below for the most accurate pre-hab protocol — these are cross-referenced with your photos.</div>`;
+  }, 2000);
+}
+
+// ─── ENHANCED LIFT LOG WITH PR DETECTION ───
+const _origLogLift = logLift;
+window.logLift = function(ti) {
+  const w = parseFloat(document.getElementById(`t-w-${ti}`)?.value);
+  const r = parseInt(document.getElementById(`t-r-${ti}`)?.value);
+  if (!w || !r) { notif('Enter weight and reps.', 'error'); return; }
+  const tracker = state.liftTrackers[ti];
+  const prevPR = tracker.entries.length > 0 ? Math.max(...tracker.entries.map(e => e.weight)) : 0;
+  const entry = { date: new Date().toLocaleDateString(), weight: w, reps: r };
+  tracker.entries.unshift(entry);
+  localStorage.setItem('apex_liftTrackers', JSON.stringify(state.liftTrackers));
+  renderLiftTrackers();
+  if (w > prevPR && prevPR > 0) {
+    notif(`🏆 NEW PR! ${w}kg on ${tracker.name}!`, 'success');
+  } else {
+    notif(`💪 ${w}kg × ${r} logged for ${tracker.name}!`, 'success');
+  }
 };
 </script>
 </body>
